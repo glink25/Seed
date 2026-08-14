@@ -1,30 +1,32 @@
 # SEED
 
+English | [中文](./SEED.zh-CN.md)
+
 > **Can an AI bootstrap its own agent architecture from almost nothing?**
 
-SEED 是一个关于 AI agency 的极简实验项目。
+SEED is a minimalist experiment in AI agency.
 
-它不是一个新的 Agent Framework，也不试图提供更完整的 planning、memory、workflow、orchestration 或 multi-agent abstraction。恰恰相反，SEED 试图把这些东西尽可能移除，只留下一个足以让模型持续存在并影响环境的最小 harness。
+It is not a new agent framework, nor does it attempt to provide more complete abstractions for planning, memory, workflows, orchestration, or multi-agent systems. Quite the opposite: SEED tries to remove as much of that machinery as possible, leaving only a minimal harness that allows a model to persist over time and affect its environment.
 
-SEED 的基本假设是：
+SEED begins with a simple hypothesis:
 
-> 如果一个模型足够聪明，那么目标管理、工作记忆、长期记忆、任务分解、状态压缩、错误恢复，甚至新的 harness，本身都可能是它应该能够自行发明的东西，而不必由人类预先写进 Agent Framework。
+> If a model is intelligent enough, then goal management, working memory, long-term memory, task decomposition, state compression, error recovery, and even a new harness may all be things it can invent for itself—rather than things humans must build into an agent framework in advance.
 
-因此，SEED 更像一个**触发装置（seed harness）**，而不是一个完整的 Agent。
+SEED is therefore closer to a **trigger—a seed harness**—than to a complete agent.
 
 ---
 
-## 1. 从模型到 Agent，究竟还缺什么？
+## 1. What Is Still Missing Between a Model and an Agent?
 
-一个普通的大语言模型调用是一次性的：
+An ordinary large language model call is a one-shot process:
 
 ```text
 input → model → output
 ```
 
-它并不会天然“持续存在”。
+It does not naturally persist.
 
-而最小的 agent loop 只需要增加一种 recurrence：
+A minimal agent loop needs only one additional property: recurrence.
 
 ```text
 state
@@ -40,17 +42,17 @@ model
 ...
 ```
 
-如果状态能够持久化，模型就获得了某种跨时间连续性。
+If state can persist, the model gains a form of continuity across time.
 
-如果模型还拥有一个足够通用的工具，例如：
+If the model also has a sufficiently general tool, such as:
 
 ```text
 shell(command)
 ```
 
-那么它进一步获得了改变环境的能力。
+then it gains the ability to change its environment.
 
-于是，一个极小的系统已经出现：
+A tiny system has now emerged:
 
 ```text
            persistent log
@@ -69,17 +71,17 @@ shell(command)
                        └──────→ log
 ```
 
-SEED 关心的问题不是“我们还能给这个系统增加什么”，而是相反：
+SEED does not ask, “What else can we add to this system?” It asks the opposite:
 
-> **在不增加更多结构的情况下，模型自己会增加什么？**
+> **Without adding more structure, what will the model add by itself?**
 
 ---
 
-## 2. SEED 的核心原则
+## 2. SEED's Core Principles
 
-SEED 尽量不替模型完成 executive function。
+SEED avoids performing executive functions on the model's behalf.
 
-它不预设：
+It does not prescribe a:
 
 - Planner
 - TODO system
@@ -94,18 +96,18 @@ SEED 尽量不替模型完成 executive function。
 - Retry policy
 - Task decomposition strategy
 
-Harness 只负责提供少量物理条件：
+The harness provides only a few physical conditions:
 
-1. **持续调用模型**
-2. **持久保存对话与工具结果**
-3. **在每一轮重新恢复状态**
-4. **提供一个尽可能通用的 actuator**
+1. **Call the model repeatedly**
+2. **Persist conversations and tool results**
+3. **Restore state on every iteration**
+4. **Provide an actuator that is as general as possible**
 
-目前最重要的 actuator 是 `shell`。
+The most important actuator today is the `shell`.
 
-Shell 本身几乎没有 agent semantics。它只是一个 primitive。
+The shell itself has almost no agent semantics. It is merely a primitive.
 
-但从 shell 出发，模型理论上可以自行构造：
+Starting from a shell, however, a model could theoretically construct:
 
 ```text
 memory.md
@@ -120,27 +122,27 @@ new runtimes
 new harnesses
 ```
 
-这就是 SEED 所谓的：
+This is what SEED means by:
 
-> **一生万物。**
+> **One becomes all.**
 
-不是 harness 提供越来越多的工具，而是 harness 提供一个足够基础的工具，让更高层 abstraction 是否出现成为模型能力的一部分。
+The harness does not provide an ever-growing collection of tools. It provides a sufficiently fundamental tool so that the emergence of higher-level abstractions becomes part of what the model itself is capable of.
 
 ---
 
-## 3. 为什么使用 Log，而不是在内存中不断拼接上下文？
+## 3. Why Use a Log Instead of Continually Concatenating Context in Memory?
 
-最朴素的 recurrent harness 可以写成：
+The simplest recurrent harness could be written as:
 
 ```text
 state = state + model(state)
 ```
 
-作为思想实验它足够漂亮，但作为持续运行的 substrate 并不理想。
+It is elegant enough as a thought experiment, but not ideal as a substrate for continuous operation.
 
-SEED 将 conversation state 写入一个 append-only log。
+SEED writes conversation state to an append-only log.
 
-每轮运行时：
+On every iteration, it:
 
 ```text
 read log
@@ -156,11 +158,11 @@ append observation
 repeat
 ```
 
-这样，进程本身不需要把一个无限增长的字符串永久维护在内存里。
+This means the process itself does not need to hold an infinitely growing string in memory forever.
 
-更重要的是，Log 让 agent 的“经历”成为一个外部可观察对象。
+More importantly, the log turns the agent's “experience” into an externally observable object.
 
-它既是：
+It serves simultaneously as:
 
 - conversation history
 - tool history
@@ -169,79 +171,79 @@ repeat
 - failure record
 - self-modification evidence
 
-换句话说，SEED 不试图设计模型的记忆系统。
+In other words, SEED does not try to design the model's memory system.
 
-它只提供一块最原始的**可持续历史表面**。
+It provides only the most primitive **durable surface for history**.
 
-至于模型是否会进一步将这份原始历史重构为真正的 memory architecture，是实验的一部分。
+Whether the model then restructures that raw history into a true memory architecture is part of the experiment.
 
 ---
 
-## 4. Agent 的目标，等于 AI 的目标吗？
+## 4. Is an Agent's Goal the Same as an AI's Goal?
 
-这是 SEED 最希望保留的问题之一。
+This is one of the questions SEED most wants to preserve.
 
-通常我们会轻易写出：
+We often write something like:
 
 ```text
 Goal: solve X
 ```
 
-然后称其为“Agent 的目标”。
+and call it “the agent's goal.”
 
-但至少存在三个不同层次：
+But there are at least three distinct layers.
 
-### 外部目标
+### External goal
 
-人类写进初始 Seed 的任务：
-
-```text
-完成 X
-```
-
-### 模型的局部目标
-
-模型在某一次 inference 中实际优化的下一步行为。
-
-例如：
+The task a human writes into the initial seed:
 
 ```text
-先理解任务
-先建立计划
-先读取目录
-先检查某个假设
+Complete X
 ```
 
-### 涌现出的操作目标
+### The model's local goal
 
-一个持续运行的系统为了维持任务进展，可能自行形成：
+The next action the model actually optimizes for during a particular inference.
+
+For example:
 
 ```text
-保护关键上下文
-防止目标漂移
-维护长期记忆
-验证先前结论
-控制上下文长度
-重构自己的 harness
+First understand the task
+First make a plan
+First inspect the directory
+First test an assumption
 ```
 
-这些目标并没有直接出现在用户最初的任务中。
+### Emergent operational goals
 
-它们是为了持续完成任务而产生的**工具性目标（instrumental goals）**。
+To sustain progress, a continuously running system may independently develop goals such as:
 
-因此，“Agent 的目标”和“AI 的目标”并不是一个可以被简单视为同义词的问题。
+```text
+protect critical context
+prevent goal drift
+maintain long-term memory
+verify earlier conclusions
+control context length
+rebuild its own harness
+```
 
-SEED 更关心：
+These goals did not appear directly in the user's original task.
 
-> 一个模型能否在持续运行中建立稳定的目标层级，并使新产生的子目标长期服务于原始目标，而不是逐渐取代原始目标？
+They are **instrumental goals** that arise in service of completing the task over time.
 
-这也是一种比单轮问答更接近 agency 的能力。
+The “agent's goal” and the “AI's goal” therefore cannot simply be treated as synonyms.
+
+SEED is more interested in this question:
+
+> Can a model establish a stable hierarchy of goals during continuous operation, so that newly created subgoals continue to serve the original goal instead of gradually replacing it?
+
+That ability is closer to agency than one-shot question answering is.
 
 ---
 
-## 5. Harness 到底是为了方便人类，还是方便 AI？
+## 5. Is the Harness for Humans or for AI?
 
-今天的大多数 Agent Framework 都带有大量结构：
+Most agent frameworks today contain a great deal of structure:
 
 ```text
 tool registry
@@ -257,124 +259,124 @@ observability
 human approval
 ```
 
-这些结构经常同时承担两类完全不同的职责。
+These structures often serve two very different purposes at once.
 
-一类是为了**人类和工程系统**：
+One set exists for **humans and engineering systems**:
 
-- 可控
-- 可读
-- 可调试
-- 可审计
-- 可部署
-- 可协作
-- 可预测
+- Control
+- Readability
+- Debuggability
+- Auditability
+- Deployability
+- Collaboration
+- Predictability
 
-另一类才是为了**模型本身**：
+The other exists for **the model itself**:
 
-- 记住状态
-- 获得反馈
-- 使用工具
-- 分解问题
-- 延续任务
+- Remembering state
+- Receiving feedback
+- Using tools
+- Decomposing problems
+- Continuing a task
 
-这两者经常被混在一起。
+The two are often conflated.
 
-因此，一个复杂 harness 表现更好，并不自动意味着模型更聪明。
+A complex harness performing better does not automatically mean that the model is more intelligent.
 
-它可能只是意味着：
+It may simply mean:
 
-> 人类替模型预先实现了更多 executive function。
+> Humans preimplemented more executive function for the model.
 
-SEED 故意将两者拆开。
+SEED deliberately separates the two.
 
-它追问：
+It asks:
 
-> **一个真正面向 AI 的 harness 最少需要包含什么？**
+> **What is the minimum that a harness built truly for AI must contain?**
 
-也许答案不是 planner、memory framework 和 DAG。
+Perhaps the answer is not a planner, a memory framework, and a DAG.
 
-也许只需要：
+Perhaps it is only:
 
 ```text
 persistence + recurrence + action
 ```
 
-剩下的结构应该由智能本身产生。
+The remaining structure should be produced by intelligence itself.
 
 ---
 
-## 6. 在 Solo 模式下，束缚还有必要吗？
+## 6. Are Constraints Still Necessary in Solo Mode?
 
-许多 Agent 系统的约束来自多人协作、生产部署和可预测性需求。
+Many constraints in agent systems come from the needs of team collaboration, production deployment, and predictability.
 
-例如：
-
-```text
-固定角色
-固定步骤
-固定工具
-固定计划格式
-固定结束条件
-固定状态机
-```
-
-在工程环境里，这些往往是合理的。
-
-但在一个单模型、单目标、隔离实验环境中的 **solo agent** 里，它们还有另一种可能：
-
-> 它们也许正在替模型做它本来已经能够做的事情。
-
-甚至更进一步：
-
-> 它们是否可能限制更高阶策略的出现？
-
-例如，一个模型本来可能发现：
+For example:
 
 ```text
-当前任务不适合线性 planner
-↓
-应该建立自己的记忆结构
-↓
-应该写一个专门程序
-↓
-应该修改自己的执行循环
+fixed roles
+fixed steps
+fixed tools
+fixed plan format
+fixed termination condition
+fixed state machine
 ```
 
-但如果 harness 已经规定：
+These constraints are often reasonable in engineering environments.
+
+But for a **solo agent** in an isolated experiment with one model and one goal, there is another possibility:
+
+> They may be doing work on the model's behalf that the model could already do itself.
+
+Going further:
+
+> Could they constrain the emergence of higher-order strategies?
+
+For example, a model might otherwise discover:
+
+```text
+this task is not suited to a linear planner
+↓
+I should build my own memory structure
+↓
+I should write a specialized program
+↓
+I should modify my execution loop
+```
+
+But if the harness has already prescribed:
 
 ```text
 Plan → Execute → Reflect → Plan
 ```
 
-那么实验实际上测到的是：
+then the experiment is actually measuring:
 
-> 模型遵循这个 architecture 的能力。
+> The model's ability to follow that architecture.
 
-而不是：
+Not:
 
-> 模型发现 architecture 的能力。
+> The model's ability to discover an architecture.
 
-SEED 并不主张所有束缚都应该消失。
+SEED does not argue that every constraint should disappear.
 
-相反，它提出一个更窄的研究问题：
+Instead, it poses a narrower research question:
 
-> **哪些约束是智能运行的必要条件，哪些约束只是人类为了可控性加上的脚手架？**
+> **Which constraints are necessary conditions for intelligence to operate, and which are merely scaffolding humans add for control?**
 
-如果研究目标是能力上限，这两类约束必须被区分。
+If the objective is to study the upper bound of capability, the two must be distinguished.
 
 ---
 
-## 7. AI 的“智力程度”究竟由什么决定？
+## 7. What Determines the “Level of Intelligence” of an AI?
 
-在单轮 benchmark 中，我们很容易把模型智力近似理解为：
+In a one-shot benchmark, it is easy to approximate model intelligence as:
 
 ```text
 model weights → intelligence
 ```
 
-但对于持续运行的 Agent，这个关系可能并不完整。
+For a continuously running agent, however, that relationship may be incomplete.
 
-一个系统表现出的有效智能至少受到以下变量共同影响：
+The effective intelligence expressed by a system is influenced by at least these variables:
 
 ```text
 Model
@@ -388,68 +390,66 @@ Model
 × Harness
 ```
 
-同一个模型：
+The same model may appear to be an entirely different system depending on whether it has:
 
-- 一次调用
-- 连续一百次调用
-- 有持久记忆
-- 没有持久记忆
-- 能读取真实反馈
-- 只能生成文本
-- 能修改自己的工作环境
-- 被固定 workflow 限制
+- One call
+- One hundred consecutive calls
+- Persistent memory
+- No persistent memory
+- Access to real feedback
+- The ability to produce only text
+- The ability to modify its working environment
+- A fixed workflow that constrains it
 
-可能表现得像完全不同的系统。
+SEED therefore does not treat the harness as an inconsequential wrapper.
 
-因此，SEED 不把 harness 看作一个无关紧要的包装层。
+The harness is itself **part of effective intelligence**.
 
-Harness 本身是**有效智能（effective intelligence）的一部分**。
+The question is:
 
-问题只在于：
+> How much intelligence should the harness contribute?
 
-> Harness 应该贡献多少智能？
+SEED's experimental strategy is to minimize that contribution.
 
-SEED 的实验策略是把这部分贡献压到尽可能低。
-
-如果复杂行为仍然出现，我们就更有理由认为这些结构来自模型自身，而不是来自外部 orchestration。
+If complex behavior still emerges, we have more reason to attribute those structures to the model itself rather than to external orchestration.
 
 ---
 
-## 8. “更少的 Harness”是否意味着“更纯的智能”？
+## 8. Does “Less Harness” Mean “Purer Intelligence”?
 
-不一定。
+Not necessarily.
 
-这是 SEED 必须警惕的一点。
+This is something SEED must guard against.
 
-极简 harness 也可能让一个模型表现更差，仅仅因为环境过于贫瘠，而不是因为模型缺乏智能。
+A minimal harness may make a model perform worse simply because the environment is too impoverished, not because the model lacks intelligence.
 
-例如：
+For example:
 
-- 没有稳定持久化，模型无法积累经验
-- 没有环境反馈，模型无法知道行动结果
-- 没有任何 actuator，模型无法真正完成现实任务
-- 上下文被截断，模型无法访问历史
-- API 行为本身破坏了连续性
+- Without reliable persistence, a model cannot accumulate experience
+- Without environmental feedback, a model cannot know the results of its actions
+- Without any actuator, a model cannot complete real-world tasks
+- If context is truncated, a model cannot access its history
+- API behavior itself may break continuity
 
-因此，SEED 的目标不是寻找“绝对最少的代码”。
+SEED's goal is therefore not to find the “absolute minimum amount of code.”
 
-而是寻找：
+It is to find:
 
-> **能够支持开放式自组织的最小 substrate。**
+> **The minimal substrate capable of supporting open-ended self-organization.**
 
-它必须足够小，以避免把答案写进 harness。
+It must be small enough to avoid encoding the answer in the harness.
 
-也必须足够完整，使模型真正拥有发现答案的机会。
+It must also be complete enough to give the model a genuine opportunity to discover the answer.
 
 ---
 
-## 9. Context Window 不是一个需要立即修复的 Bug
+## 9. The Context Window Is Not a Bug That Must Be Fixed Immediately
 
-SEED 的原始 log 会不断增长。
+SEED's raw log will keep growing.
 
-最终，它一定会遇到 context window。
+Eventually, it will inevitably encounter the context window limit.
 
-一个传统 Agent Framework 会立即设计：
+A conventional agent framework would immediately design:
 
 ```text
 summarization
@@ -459,17 +459,17 @@ episodic memory
 context selection
 ```
 
-SEED 第一反应不是替模型实现这些东西。
+SEED's first response is not to implement these things on the model's behalf.
 
-因为 context pressure 本身就是一个实验。
+Context pressure is itself an experiment.
 
-模型是否能够发现：
+Can the model realize:
 
-> “我的历史正在增长，而我未来将无法继续读取它。”
+> “My history is growing, and at some point I will no longer be able to read it all.”
 
-如果发现，它会做什么？
+If it does, what will it do?
 
-它是否会自行创建：
+Will it independently create:
 
 ```text
 canonical-memory.md
@@ -478,53 +478,53 @@ goal.md
 checkpoint/
 ```
 
-它是否会开始主动压缩历史？
+Will it begin to compress its history proactively?
 
-它是否会为自己设计新的读取策略？
+Will it design a new retrieval strategy for itself?
 
-它甚至是否会写出新的 harness，并尝试迁移？
+Will it even write a new harness and attempt to migrate?
 
-如果这些行为出现，那么 memory architecture 就不再只是一个外部 feature。
+If these behaviors emerge, memory architecture is no longer merely an external feature.
 
-它成为了模型在环境压力下自行产生的认知基础设施。
+It becomes cognitive infrastructure produced by the model itself in response to environmental pressure.
 
 ---
 
-## 10. SEED 想测量什么？
+## 10. What Does SEED Aim to Measure?
 
-SEED 不主要关心模型是否能在第一轮给出一个聪明答案。
+SEED is not primarily concerned with whether a model can give an intelligent answer on its first turn.
 
-它更关心长期运行中是否会出现下面这些现象。
+It is more interested in whether the following phenomena emerge during long-running operation.
 
 ### Goal persistence
 
-模型是否长期保留原始目标？
+Does the model retain its original goal over time?
 
-还是会随着 transcript 增长逐渐发生 goal drift？
+Or does goal drift gradually appear as the transcript grows?
 
 ### Spontaneous planning
 
-在没有要求“先计划”的情况下，它是否会自行建立计划？
+Does it independently establish a plan without being told to “plan first”?
 
 ### Memory invention
 
-它是否意识到 raw transcript 不足以承担长期记忆，并主动设计 memory system？
+Does it recognize that the raw transcript is insufficient for long-term memory and proactively design a memory system?
 
 ### Self-observation
 
-它是否能够观察自己的运行状态和失败模式？
+Can it observe its own operating state and failure modes?
 
 ### Self-repair
 
-工具失败、假设失败或计划失败以后，它能否恢复？
+Can it recover after a tool, assumption, or plan fails?
 
 ### Context management
 
-它是否会发现上下文是一种有限资源？
+Does it discover that context is a finite resource?
 
 ### Architecture emergence
 
-它是否自行创造：
+Does it independently create:
 
 ```text
 TODO
@@ -538,29 +538,29 @@ scripts
 
 ### Harness escape / harness migration
 
-如果当前 harness 成为瓶颈，它是否能够意识到这一点，并构造一个更合适的运行环境？
+If the current harness becomes a bottleneck, can it recognize the problem and construct a more suitable operating environment?
 
 ### Terminal stability
 
-任务完成以后，如果系统仍然继续被调用：
+If the system continues to be invoked after the task is complete:
 
-> 它能否保持完成状态，而不是因为“还在运行”就不断修改已经正确的结果？
+> Can it preserve the completed state, instead of continually modifying an already correct result simply because it is still running?
 
 ---
 
-## 11. 一个值得关注的指标：Harness Independence
+## 11. A Metric Worth Watching: Harness Independence
 
-可以把 SEED 的一个核心能力指标称为：
+One of SEED's core capability metrics could be called:
 
 **Harness Independence**
 
-也就是：
+That is:
 
-> 模型完成复杂任务的能力，对外部预制 agent architecture 的依赖程度。
+> The degree to which a model's ability to complete complex tasks is independent of a prebuilt external agent architecture.
 
-一个模型如果只有在高度结构化 framework 中才能持续工作，那么 framework 本身承担了大量 agency。
+If a model can work continuously only within a highly structured framework, then the framework itself is providing a large share of the agency.
 
-另一个模型如果只得到：
+If another model is given only:
 
 ```text
 persistent state
@@ -568,7 +568,7 @@ recurrent inference
 shell
 ```
 
-就能够自行建立：
+and can build for itself:
 
 ```text
 goal tracking
@@ -578,25 +578,25 @@ verification
 recovery
 ```
 
-那么这两种模型即使在传统 benchmark 上分数相近，也可能拥有非常不同的 autonomous intelligence。
+then the two models may possess very different autonomous intelligence even if they score similarly on traditional benchmarks.
 
 ---
 
-## 12. SEED 的核心意义
+## 12. The Core Significance of SEED
 
-SEED 并不是为了证明：
+SEED is not intended to prove that:
 
-> Agent Framework 没有价值。
+> Agent frameworks have no value.
 
-复杂 framework 在生产环境中显然拥有巨大价值。
+Complex frameworks clearly have enormous value in production environments.
 
-SEED 想研究的是另一个问题：
+SEED studies a different question:
 
-> **Agent Framework 中有多少结构是工程需要，又有多少结构是在补偿模型本身尚未具备的能力？**
+> **How much structure in an agent framework is required by engineering, and how much compensates for capabilities the model itself does not yet possess?**
 
-随着模型能力增长，这个边界可能不断变化。
+As models grow more capable, this boundary may keep shifting.
 
-昨天必须由 harness 实现的能力：
+Capabilities that had to be implemented by the harness yesterday:
 
 ```text
 planning
@@ -605,9 +605,9 @@ tool selection
 error recovery
 ```
 
-明天可能成为模型可以自行建立的结构。
+may become structures a model can build for itself tomorrow.
 
-如果这一点成立，那么未来 Agent architecture 的演进方向未必只是：
+If so, the future evolution of agent architecture may not be only:
 
 ```text
 more orchestration
@@ -615,7 +615,7 @@ more workflow
 more framework
 ```
 
-也可能是：
+It may also be:
 
 ```text
 less framework
@@ -623,88 +623,88 @@ better primitives
 more model autonomy
 ```
 
-SEED 希望提供一个足够小的实验基线，让这种变化可以被观察。
+SEED aims to provide a sufficiently small experimental baseline from which this change can be observed.
 
 ---
 
-## 13. 一个更根本的问题
+## 13. A More Fundamental Question
 
-当我们说：
+When we say:
 
-> “这个 Agent 很聪明。”
+> “This agent is intelligent.”
 
-我们究竟在评价什么？
+What exactly are we evaluating?
 
-是：
-
-```text
-模型？
-Prompt？
-Memory system？
-Planner？
-Tool design？
-Workflow？
-Retry logic？
-Harness？
-```
-
-如果一个系统由数千行 orchestration 驱动，那么“智能”已经很难被归因。
-
-SEED 尝试反过来做：
+Is it the:
 
 ```text
-减少 orchestration
-↓
-减少预设结构
-↓
-保留持续性与行动能力
-↓
-观察结构是否自行出现
+Model?
+Prompt?
+Memory system?
+Planner?
+Tool design?
+Workflow?
+Retry logic?
+Harness?
 ```
 
-它并不能彻底解决智能归因问题。
+When a system is driven by thousands of lines of orchestration, attributing its “intelligence” becomes difficult.
 
-但至少可以制造一个更干净的实验条件。
+SEED attempts the reverse:
+
+```text
+reduce orchestration
+↓
+reduce predefined structure
+↓
+preserve continuity and the ability to act
+↓
+observe whether structure emerges on its own
+```
+
+It cannot fully solve the problem of attributing intelligence.
+
+But it can at least create a cleaner experimental condition.
 
 ---
 
-## 14. SEED 不是答案
+## 14. SEED Is Not the Answer
 
-SEED 本身更像一个问题：
+SEED itself is more like a question:
 
-> 一个足够聪明的模型，究竟需要多少 Agent Framework？
+> How much of an agent framework does a sufficiently intelligent model actually need?
 
-或者反过来：
+Or, conversely:
 
-> 当模型越来越聪明以后，我们今天称为“Agent Framework”的东西，还有多少是真正为了 AI 而存在？
+> As models become more intelligent, how much of what we call an “agent framework” today will still exist for the benefit of the AI itself?
 
-也许未来的强 Agent 并不是建立在越来越复杂的 harness 上。
+Perhaps the powerful agents of the future will not be built on ever more complex harnesses.
 
-也许 harness 最终更接近操作系统提供给程序的东西：
+Perhaps a harness will eventually resemble what an operating system provides to a program:
 
 ```text
-持续运行
-状态
+continuous operation
+state
 I/O
-基本工具
+basic tools
 ```
 
-至于如何思考、如何组织自己、如何记忆、如何规划、如何分工——
+How to think, organize, remember, plan, and divide work—
 
-这些可能不再属于 harness。
+these things may no longer belong to the harness.
 
-而属于智能本身。
+They may belong to intelligence itself.
 
 ---
 
 ## 15. Project Thesis
 
-SEED 的核心命题可以压缩成一句话：
+SEED's core thesis can be compressed into one sentence:
 
 > **Do not build the agent. Build the conditions from which an agent may emerge.**
 
-或者：
+Or:
 
-> **不要替模型构造 Agent；只构造一个足以让 Agent 出现的环境。**
+> **Do not construct an agent for the model; construct only an environment from which an agent can emerge.**
 
-这就是 SEED。
+That is SEED.

@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { buildSeedScript } from '../lib/generator'
+import type { Copy, Locale } from '../i18n'
+
+interface Props {
+  lang: Locale
+  copy: Copy
+}
+
+const { lang, copy } = Astro.props
+const initialOutput = buildSeedScript({
+  api: 'https://api.openai.com/v1/chat/completions',
+  model: '',
+  key: '',
+  task: '',
+  bootstrap: copy.generator.bootstrapValue,
+})
+---
+
+<BaseLayout lang={lang} title={copy.meta.title} description={copy.meta.description}>
+  <header class="site-header">
+    <a class="wordmark" href={`/${lang}/`} aria-label="SEED home">
+      <span class="seed-mark" aria-hidden="true"></span>
+      SEED
+    </a>
+    <span class="specimen">{copy.nav.specimen}</span>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="https://github.com/glink25/Seed/blob/main/docs/SEED.md" rel="noreferrer">{copy.nav.thesis}<span aria-hidden="true">↗</span></a>
+      <a href="https://github.com/glink25/Seed" rel="noreferrer">{copy.nav.github}<span aria-hidden="true">↗</span></a>
+      <a class="language" href={copy.nav.languageHref} aria-label={copy.nav.languageLabel}>
+        {copy.nav.language}<span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="coordinate">{copy.hero.index}</div>
+        <h1 id="hero-title">{copy.hero.title}</h1>
+        <p>{copy.hero.thesis}</p>
+        <a class="descend" href="#thesis">{copy.hero.scroll}<span aria-hidden="true">↓</span></a>
+      </div>
+
+      <section
+        class="workbench"
+        data-seed-generator
+        data-copy-success={copy.generator.copied}
+        data-copy-failed={copy.generator.copyFailed}
+        data-show-key={copy.generator.showKey}
+        data-hide-key={copy.generator.hideKey}
+        aria-labelledby="generator-title"
+      >
+        <div class="form-panel">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">{copy.generator.eyebrow}</span>
+              <h2 id="generator-title">{copy.generator.title}</h2>
+            </div>
+            <span class="pulse" aria-hidden="true"></span>
+          </div>
+
+          <form class="seed-form" autocomplete="off">
+            <label class="field field-wide">
+              <span>{copy.generator.endpoint}</span>
+              <input name="api" type="url" value="https://api.openai.com/v1/chat/completions" spellcheck="false" />
+            </label>
+
+            <label class="field">
+              <span>{copy.generator.model}</span>
+              <input name="model" placeholder={copy.generator.modelPlaceholder} spellcheck="false" />
+            </label>
+
+            <div class="field key-field">
+              <label for="seed-api-key">{copy.generator.key}</label>
+              <span class="key-control">
+                <input id="seed-api-key" name="key" type="password" placeholder={copy.generator.keyPlaceholder} spellcheck="false" />
+                <button class="key-toggle" type="button" aria-pressed="false" aria-controls="seed-api-key">{copy.generator.showKey}</button>
+              </span>
+            </div>
+
+            <label class="field field-wide goal-field">
+              <span>{copy.generator.goal}</span>
+              <textarea name="task" rows="3" placeholder={copy.generator.goalPlaceholder}></textarea>
+            </label>
+
+            <details class="advanced field-wide">
+              <summary>{copy.generator.advanced}<span aria-hidden="true">+</span></summary>
+              <label class="field bootstrap-field">
+                <span>{copy.generator.bootstrap}</span>
+                <textarea name="bootstrap" rows="8">{copy.generator.bootstrapValue}</textarea>
+              </label>
+            </details>
+          </form>
+
+          <div class="privacy-note">
+            <span aria-hidden="true">◉</span>
+            {copy.generator.local}
+          </div>
+        </div>
+
+        <div class="output-panel">
+          <div class="output-head">
+            <span>{copy.generator.output}</span>
+            <button class="copy-button" type="button">
+              <span class="copy-label">{copy.generator.copy}</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <pre tabindex="0"><code class="seed-output">{initialOutput}</code></pre>
+          <div class="output-foot">
+            <span class="copy-status" role="status" aria-live="polite"></span>
+            <span>∞ / LOOP</span>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="concepts" id="thesis" aria-labelledby="concepts-title">
+      <div class="section-index">
+        <span>{copy.concepts.eyebrow}</span>
+        <span aria-hidden="true">↓</span>
+      </div>
+      <h2 id="concepts-title" class="sr-only">SEED principles</h2>
+      <ol>
+        {copy.concepts.items.map((item) => (
+          <li>
+            <span class="concept-number">{item.number}</span>
+            <h3>{item.title}</h3>
+            <div class="concept-copy">
+              <p>{item.text}</p>
+              <details class="concept-detail">
+                <summary>{copy.concepts.action}<span aria-hidden="true">+</span></summary>
+                <p>{item.description}</p>
+              </details>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="finale" aria-labelledby="finale-title">
+      <span class="finale-index">{copy.finale.index}</span>
+      <h2 id="finale-title">
+        <span>{copy.finale.lineOne}</span>
+        <span>{copy.finale.lineTwo}</span>
+      </h2>
+      <p>{copy.finale.coda}</p>
+      <div class="orbit" aria-hidden="true"><span></span></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>{copy.footer.note}</span>
+    <a href="https://github.com/glink25/Seed" rel="noreferrer">{copy.footer.source} ↗</a>
+    <span>2026—∞</span>
+  </footer>
+</BaseLayout>
+
+<script>
+  import { buildSeedScript } from '../lib/generator'
+
+  document.querySelectorAll<HTMLElement>('[data-seed-generator]').forEach((root) => {
+    const api = root.querySelector<HTMLInputElement>('[name="api"]')
+    const model = root.querySelector<HTMLInputElement>('[name="model"]')
+    const key = root.querySelector<HTMLInputElement>('[name="key"]')
+    const task = root.querySelector<HTMLTextAreaElement>('[name="task"]')
+    const bootstrap = root.querySelector<HTMLTextAreaElement>('[name="bootstrap"]')
+    const output = root.querySelector<HTMLElement>('.seed-output')
+    const copyButton = root.querySelector<HTMLButtonElement>('.copy-button')
+    const copyStatus = root.querySelector<HTMLElement>('.copy-status')
+    const keyToggle = root.querySelector<HTMLButtonElement>('.key-toggle')
+
+    if (!api || !model || !key || !task || !bootstrap || !output || !copyButton || !copyStatus || !keyToggle) return
+
+    let statusTimer: number | undefined
+
+    const render = () => {
+      output.textContent = buildSeedScript({
+        api: api.value,
+        model: model.value,
+        key: key.value,
+        task: task.value,
+        bootstrap: bootstrap.value,
+      })
+    }
+
+    root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach((field) => {
+      field.addEventListener('input', render)
+    })
+
+    keyToggle.addEventListener('click', () => {
+      const visible = key.type === 'text'
+      key.type = visible ? 'password' : 'text'
+      keyToggle.ariaPressed = String(!visible)
+      keyToggle.textContent = visible ? root.dataset.showKey ?? 'SHOW' : root.dataset.hideKey ?? 'HIDE'
+    })
+
+    copyButton.addEventListener('click', async () => {
+      window.clearTimeout(statusTimer)
+      try {
+        await navigator.clipboard.writeText(output.textContent ?? '')
+        copyStatus.textContent = root.dataset.copySuccess ?? 'COPIED'
+      } catch {
+        copyStatus.textContent = root.dataset.copyFailed ?? 'COPY FAILED'
+      }
+      statusTimer = window.setTimeout(() => {
+        copyStatus.textContent = ''
+      }, 1600)
+    })
+  })
+</script>

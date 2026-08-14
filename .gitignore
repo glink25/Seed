@@ -85,6 +85,7 @@ out
 .nuxt
 dist
 .output
+.astro/
 
 # Gatsby files
 .cache/
