@@ -1,19 +1,13 @@
-# Meta Seed
+# SEED
 
-Minimal LLM Agent Generator，基于 Vite + React + TypeScript。
+> **一生万物**
 
-## 开发
+[了解什么是SEED](./docs/SEED.md)
 
-```bash
-npm install
-npm run dev
-```
+快速开始使用SEED Agent
 
-## 构建
+1. 打开链接
+2. 填入api
+3. 复制代码并粘贴到终端中运行，开始使用
 
-```bash
-npm run build
-npm run preview
-```
-
-页面在本地生成一个可直接粘贴到终端运行的最小 Level-0 Seed Agent 脚本，不会发起任何 API 请求。
+这就是SEED，最小，也可能是最后的AI Agent
