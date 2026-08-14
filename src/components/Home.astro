@@ -13,6 +13,7 @@ const initialOutput = buildSeedScript({
   api: 'https://api.openai.com/v1/chat/completions',
   model: '',
   key: '',
+  log: '.seed-agent.jsonl',
   task: '',
   bootstrap: copy.generator.bootstrapValue,
   language: 'nodejs',
@@ -90,6 +91,11 @@ const initialOutput = buildSeedScript({
                 <button class="key-toggle" type="button" aria-pressed="false" aria-controls="seed-api-key">{copy.generator.showKey}</button>
               </span>
             </div>
+
+            <label class="field field-wide">
+              <span>{copy.generator.log}</span>
+              <input name="log" value=".seed-agent.jsonl" spellcheck="false" />
+            </label>
 
             <label class="field field-wide goal-field">
               <span>{copy.generator.goal}</span>
@@ -182,6 +188,7 @@ const initialOutput = buildSeedScript({
     const model = root.querySelector<HTMLInputElement>('[name="model"]')
     const key = root.querySelector<HTMLInputElement>('[name="key"]')
     const language = root.querySelector<HTMLSelectElement>('[name="language"]')
+    const log = root.querySelector<HTMLInputElement>('[name="log"]')
     const task = root.querySelector<HTMLTextAreaElement>('[name="task"]')
     const bootstrap = root.querySelector<HTMLTextAreaElement>('[name="bootstrap"]')
     const output = root.querySelector<HTMLElement>('.seed-output')
@@ -195,6 +202,7 @@ const initialOutput = buildSeedScript({
       !model ||
       !key ||
       !language ||
+      !log ||
       !task ||
       !bootstrap ||
       !output ||
@@ -210,6 +218,7 @@ const initialOutput = buildSeedScript({
       api: api.value,
       model: model.value,
       key: key.value,
+      log: log.value,
       task: task.value,
       bootstrap: bootstrap.value,
       language: isCodeLanguage(language.value) ? language.value : 'nodejs',
@@ -238,6 +247,7 @@ const initialOutput = buildSeedScript({
         api.value = preferences.api
         model.value = preferences.model
         key.value = preferences.key
+        log.value = preferences.log
         language.value = preferences.language
         bootstrap.value = preferences.bootstrap
       }
@@ -250,7 +260,7 @@ const initialOutput = buildSeedScript({
     })
 
     root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
-      '[name="api"], [name="model"], [name="key"], [name="bootstrap"]',
+      '[name="api"], [name="model"], [name="key"], [name="log"], [name="bootstrap"]',
     ).forEach((field) => {
       field.addEventListener('input', persist)
     })

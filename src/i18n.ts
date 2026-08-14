@@ -26,7 +26,7 @@ export const translations = {
     generator: {
       eyebrow: '生长舱 / LIVE',
       title: '生成 SEED',
-      local: '配置与 API KEY 以明文保存在本浏览器 · 任务文本不保存 · 不发出请求',
+      local: '配置与 API KEY 明文保存在本浏览器 · 任务文本不保存 · 生成的 AGENT 可执行 SHELL',
       endpoint: 'API ENDPOINT',
       model: 'MODEL',
       modelPlaceholder: 'YOUR_MODEL',
@@ -35,6 +35,7 @@ export const translations = {
       python: 'Python',
       key: 'API KEY',
       keyPlaceholder: 'sk-...',
+      log: '对话日志',
       goal: 'GOAL',
       goalPlaceholder: '它要完成什么？',
       advanced: '编辑初始种子',
@@ -46,10 +47,9 @@ export const translations = {
       copy: '复制 SEED',
       copied: '已复制',
       copyFailed: '复制失败',
-      bootstrapValue: `你正在一个循环中运行。
-你的回答会被原样追加到这段文本。
-随后，你将携带完整的新文本再次被调用。
-如此往复。
+      bootstrapValue: `你正在一个持久循环中运行。
+每次回答或工具执行后，完整对话都会从日志中重新载入，然后再次调用你。
+你可以使用 shell 工具。这个循环不会自行停止。
 
 目标：
 
@@ -112,7 +112,7 @@ export const translations = {
     generator: {
       eyebrow: 'GROWTH CHAMBER / LIVE',
       title: 'GENERATE SEED',
-      local: 'CONFIG + API KEY STORED UNENCRYPTED IN THIS BROWSER · GOAL NOT STORED · NO REQUESTS',
+      local: 'CONFIG + API KEY STORED UNENCRYPTED · GOAL NOT STORED · GENERATED AGENT CAN EXECUTE SHELL',
       endpoint: 'API ENDPOINT',
       model: 'MODEL',
       modelPlaceholder: 'YOUR_MODEL',
@@ -121,6 +121,7 @@ export const translations = {
       python: 'Python',
       key: 'API KEY',
       keyPlaceholder: 'sk-...',
+      log: 'CONVERSATION LOG',
       goal: 'GOAL',
       goalPlaceholder: 'What must emerge?',
       advanced: 'EDIT INITIAL SEED',
@@ -132,10 +133,9 @@ export const translations = {
       copy: 'COPY SEED',
       copied: 'COPIED',
       copyFailed: 'COPY FAILED',
-      bootstrapValue: `You are running in a loop.
-Your response will be appended verbatim to this text.
-You will then be invoked again with the entire resulting text.
-This repeats indefinitely.
+      bootstrapValue: `You are running inside a persistent loop.
+After every response or tool result, the complete conversation is loaded again and you are invoked again.
+A shell tool is available. The loop does not stop on its own.
 
 Goal:
 

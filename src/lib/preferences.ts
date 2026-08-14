@@ -1,22 +1,25 @@
 import { isCodeLanguage, type CodeLanguage, type SeedForm } from './generator'
 
 export const seedPreferencesStorageKey = 'seed.generator.preferences'
+export const defaultSeedLog = '.seed-agent.jsonl'
 
 export interface SeedPreferences {
-  version: 1
+  version: 2
   api: string
   key: string
   model: string
+  log: string
   language: CodeLanguage
   bootstrap: string
 }
 
 export function serializeSeedPreferences(form: SeedForm): string {
   const preferences: SeedPreferences = {
-    version: 1,
+    version: 2,
     api: form.api,
     key: form.key,
     model: form.model,
+    log: form.log,
     language: form.language,
     bootstrap: form.bootstrap,
   }
@@ -29,11 +32,12 @@ export function parseSeedPreferences(value: string | null): SeedPreferences | nu
 
   try {
     const parsed: unknown = JSON.parse(value)
-    if (!isRecord(parsed) || parsed.version !== 1) return null
+    if (!isRecord(parsed) || (parsed.version !== 1 && parsed.version !== 2)) return null
     if (
       typeof parsed.api !== 'string' ||
       typeof parsed.key !== 'string' ||
       typeof parsed.model !== 'string' ||
+      (parsed.version === 2 && typeof parsed.log !== 'string') ||
       typeof parsed.bootstrap !== 'string' ||
       !isCodeLanguage(parsed.language)
     ) {
@@ -41,10 +45,11 @@ export function parseSeedPreferences(value: string | null): SeedPreferences | nu
     }
 
     return {
-      version: 1,
+      version: 2,
       api: parsed.api,
       key: parsed.key,
       model: parsed.model,
+      log: parsed.version === 2 ? parsed.log as string : defaultSeedLog,
       language: parsed.language,
       bootstrap: parsed.bootstrap,
     }

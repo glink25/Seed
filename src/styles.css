@@ -494,8 +494,9 @@ textarea::placeholder {
 }
 
 .output-panel pre {
+  height: 430px;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 430px;
   margin: 0;
   padding: 20px;
   overflow: auto;
@@ -802,8 +803,9 @@ footer span:last-child {
   }
 
   .output-panel pre {
-    min-height: 360px;
-    max-height: 58vh;
+    height: 360px;
+    min-height: 0;
+    flex-basis: 360px;
   }
 
   .concepts {
@@ -900,7 +902,9 @@ footer span:last-child {
   }
 
   .output-panel pre {
-    min-height: 310px;
+    height: 310px;
+    min-height: 0;
+    flex-basis: 310px;
   }
 
   footer {
