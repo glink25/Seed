@@ -4,21 +4,16 @@ English | [中文](./README.zh-CN.md)
 
 > One becomes all. 一生万物。
 
-Let an agent emerge on its own from the smallest possible loop.
+Let an Agent emerge on its own from the smallest possible loop.
 
-## Run
+[SEED thesis](./docs/SEED.md)
 
-```bash
-pnpm install
-pnpm dev
-```
+## Quick start with SEED Agent
 
-```bash
-pnpm check
-pnpm test
-pnpm build
-```
+1. Open [SEED](https://seed.linkai.work/)
+2. Enter your API key
+3. Copy the code, paste it into your terminal, and run it to get started
 
-The generator runs entirely in the browser. It only produces code that you can paste into a Node.js 18+ terminal; it does not make API requests from the web page or store the API key you enter.
+The generator runs entirely in your browser and produces code you can paste into a Node.js 18+ or Python 3 terminal. It never sends API requests from the page.
 
-[Read the SEED thesis](./docs/SEED.md)
+Generator configuration, including the API key, is stored unencrypted in your browser's local storage. Goal text is never stored. Clear the fields or the site's browser data to remove saved configuration.

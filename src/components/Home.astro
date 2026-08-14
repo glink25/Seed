@@ -15,6 +15,7 @@ const initialOutput = buildSeedScript({
   key: '',
   task: '',
   bootstrap: copy.generator.bootstrapValue,
+  language: 'nodejs',
 })
 ---
 
@@ -50,6 +51,8 @@ const initialOutput = buildSeedScript({
         data-copy-failed={copy.generator.copyFailed}
         data-show-key={copy.generator.showKey}
         data-hide-key={copy.generator.hideKey}
+        data-output-nodejs={copy.generator.outputNodejs}
+        data-output-python={copy.generator.outputPython}
         aria-labelledby="generator-title"
       >
         <div class="form-panel">
@@ -72,7 +75,15 @@ const initialOutput = buildSeedScript({
               <input name="model" placeholder={copy.generator.modelPlaceholder} spellcheck="false" />
             </label>
 
-            <div class="field key-field">
+            <label class="field language-field">
+              <span>{copy.generator.codeLanguage}</span>
+              <select name="language">
+                <option value="nodejs">{copy.generator.nodejs}</option>
+                <option value="python">{copy.generator.python}</option>
+              </select>
+            </label>
+
+            <div class="field field-wide key-field">
               <label for="seed-api-key">{copy.generator.key}</label>
               <span class="key-control">
                 <input id="seed-api-key" name="key" type="password" placeholder={copy.generator.keyPlaceholder} spellcheck="false" />
@@ -102,7 +113,7 @@ const initialOutput = buildSeedScript({
 
         <div class="output-panel">
           <div class="output-head">
-            <span>{copy.generator.output}</span>
+            <span class="runtime-label">{copy.generator.outputNodejs}</span>
             <button class="copy-button" type="button">
               <span class="copy-label">{copy.generator.copy}</span>
               <span aria-hidden="true">↗</span>
@@ -159,36 +170,97 @@ const initialOutput = buildSeedScript({
 </BaseLayout>
 
 <script>
-  import { buildSeedScript } from '../lib/generator'
+  import { buildSeedScript, isCodeLanguage, type SeedForm } from '../lib/generator'
+  import {
+    parseSeedPreferences,
+    seedPreferencesStorageKey,
+    serializeSeedPreferences,
+  } from '../lib/preferences'
 
   document.querySelectorAll<HTMLElement>('[data-seed-generator]').forEach((root) => {
     const api = root.querySelector<HTMLInputElement>('[name="api"]')
     const model = root.querySelector<HTMLInputElement>('[name="model"]')
     const key = root.querySelector<HTMLInputElement>('[name="key"]')
+    const language = root.querySelector<HTMLSelectElement>('[name="language"]')
     const task = root.querySelector<HTMLTextAreaElement>('[name="task"]')
     const bootstrap = root.querySelector<HTMLTextAreaElement>('[name="bootstrap"]')
     const output = root.querySelector<HTMLElement>('.seed-output')
+    const runtimeLabel = root.querySelector<HTMLElement>('.runtime-label')
     const copyButton = root.querySelector<HTMLButtonElement>('.copy-button')
     const copyStatus = root.querySelector<HTMLElement>('.copy-status')
     const keyToggle = root.querySelector<HTMLButtonElement>('.key-toggle')
 
-    if (!api || !model || !key || !task || !bootstrap || !output || !copyButton || !copyStatus || !keyToggle) return
+    if (
+      !api ||
+      !model ||
+      !key ||
+      !language ||
+      !task ||
+      !bootstrap ||
+      !output ||
+      !runtimeLabel ||
+      !copyButton ||
+      !copyStatus ||
+      !keyToggle
+    ) return
 
     let statusTimer: number | undefined
 
+    const getForm = (): SeedForm => ({
+      api: api.value,
+      model: model.value,
+      key: key.value,
+      task: task.value,
+      bootstrap: bootstrap.value,
+      language: isCodeLanguage(language.value) ? language.value : 'nodejs',
+    })
+
     const render = () => {
-      output.textContent = buildSeedScript({
-        api: api.value,
-        model: model.value,
-        key: key.value,
-        task: task.value,
-        bootstrap: bootstrap.value,
-      })
+      const form = getForm()
+      output.textContent = buildSeedScript(form)
+      runtimeLabel.textContent =
+        form.language === 'python'
+          ? root.dataset.outputPython ?? 'PYTHON 3 / STDIN'
+          : root.dataset.outputNodejs ?? 'NODE 18+ / STDIN'
+    }
+
+    const persist = () => {
+      try {
+        localStorage.setItem(seedPreferencesStorageKey, serializeSeedPreferences(getForm()))
+      } catch {
+        // The generator remains usable when storage is disabled or full.
+      }
+    }
+
+    try {
+      const preferences = parseSeedPreferences(localStorage.getItem(seedPreferencesStorageKey))
+      if (preferences) {
+        api.value = preferences.api
+        model.value = preferences.model
+        key.value = preferences.key
+        language.value = preferences.language
+        bootstrap.value = preferences.bootstrap
+      }
+    } catch {
+      // Keep server-rendered defaults when storage is unavailable.
     }
 
     root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach((field) => {
       field.addEventListener('input', render)
     })
+
+    root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+      '[name="api"], [name="model"], [name="key"], [name="bootstrap"]',
+    ).forEach((field) => {
+      field.addEventListener('input', persist)
+    })
+
+    language.addEventListener('change', () => {
+      render()
+      persist()
+    })
+
+    render()
 
     keyToggle.addEventListener('click', () => {
       const visible = key.type === 'text'
