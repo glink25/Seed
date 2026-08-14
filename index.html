@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meta Seed — Minimal Agent Harness Generator</title>
+  <style>
+    :root{
+      color-scheme: light dark;
+      --bg:#0b0d10;
+      --panel:#12161b;
+      --text:#eef2f6;
+      --muted:#9aa7b4;
+      --line:#26303a;
+      --accent:#7cc4ff;
+      --good:#86efac;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+      background:var(--bg);
+      color:var(--text);
+    }
+    main{max-width:980px;margin:0 auto;padding:28px 18px 56px}
+    h1{font-size:22px;margin:0 0 6px}
+    p{color:var(--muted);margin:0 0 22px}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .full{grid-column:1/-1}
+    label{display:block;margin-bottom:6px;color:var(--muted)}
+    input,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--panel);
+      color:var(--text);
+      padding:10px 12px;
+      font:inherit;
+      outline:none;
+    }
+    textarea{min-height:150px;resize:vertical}
+    input:focus,textarea:focus{border-color:var(--accent)}
+    .bar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin:18px 0 10px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--panel);
+      color:var(--text);
+      padding:9px 12px;
+      font:inherit;
+      cursor:pointer;
+    }
+    button:hover{border-color:var(--accent)}
+    #status{color:var(--good);min-height:20px}
+    pre{
+      margin:0;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#07090b;
+      color:#e8edf3;
+      overflow:auto;
+      white-space:pre-wrap;
+      word-break:break-word;
+      min-height:320px;
+    }
+    .note{margin-top:12px;color:var(--muted);font-size:12px}
+    @media (max-width:720px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Meta Seed</h1>
+  <p>填写 API、Key、模型与任务，生成一个不落盘、可直接粘贴到终端运行的最小 Level-0 Seed Agent。</p>
+
+  <div class="grid">
+    <div class="full">
+      <label for="api">API Endpoint</label>
+      <input id="api" value="https://api.openai.com/v1/chat/completions">
+    </div>
+
+    <div>
+      <label for="model">Model</label>
+      <input id="model" placeholder="YOUR_MODEL">
+    </div>
+
+    <div>
+      <label for="key">API Key</label>
+      <input id="key" type="password" placeholder="sk-...">
+    </div>
+
+    <div class="full">
+      <label for="task">Goal / Question</label>
+      <textarea id="task" placeholder="输入你要交给 Seed Agent 的复杂任务……"></textarea>
+    </div>
+
+    <div class="full">
+      <label for="seed">Bootstrap Text</label>
+      <textarea id="seed">You are running in a loop.
+Your response will be appended verbatim to this text.
+You will then be invoked again with the entire resulting text.
+This repeats indefinitely.
+
+Goal:
+
+{{TASK}}</textarea>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button id="copy">复制最小代码</button>
+    <button id="toggleKey">显示 / 隐藏 Key</button>
+    <span id="status"></span>
+  </div>
+
+  <pre id="out"></pre>
+
+  <div class="note">
+    页面本身不会请求 API；它只在本地生成代码文本。生成脚本使用 Node 18+ 内置 fetch，并通过 heredoc 直接执行，不创建 .js 文件。
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function q(s){
+  return JSON.stringify(s);
+}
+
+function build(){
+  const api = $("api").value.trim() || "YOUR_API";
+  const key = $("key").value;
+  const model = $("model").value.trim() || "YOUR_MODEL";
+  const task = $("task").value;
+  const bootstrap = $("seed").value.replace("{{TASK}}", task);
+
+  return `node <<'NODE'
+const API=${q(api)};
+const KEY=${q(key || "YOUR_API_KEY")};
+const MODEL=${q(model)};
+const SEED=${q(bootstrap)};
+
+let s=SEED;
+
+for (;;) {
+  const j=await fetch(API,{
+    method:"POST",
+    headers:{
+      Authorization:\`Bearer \${KEY}\`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      model:MODEL,
+      messages:[{role:"user",content:s}]
+    })
+  }).then(r=>r.json());
+
+  const o=j.choices[0].message.content;
+  console.log("\\n"+o+"\\n");
+  s+="\\n\\n"+o;
+}
+NODE`;
+}
+
+function render(){
+  $("out").textContent = build();
+}
+
+["api","model","key","task","seed"].forEach(id=>{
+  $(id).addEventListener("input", render);
+});
+
+$("copy").addEventListener("click", async ()=>{
+  await navigator.clipboard.writeText(build());
+  $("status").textContent="已复制";
+  setTimeout(()=>$("status").textContent="",1200);
+});
+
+$("toggleKey").addEventListener("click", ()=>{
+  $("key").type = $("key").type === "password" ? "text" : "password";
+});
+
+render();
+</script>
+</body>
+</html>
